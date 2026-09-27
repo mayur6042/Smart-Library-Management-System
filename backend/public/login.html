@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Open Stacks Library — Log in</title>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,600;1,500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#FAF7F0; --ink:#23211D; --charcoal-soft:#726C5E;
+    --rule:#DEDBCC; --wash:#F1EDE0; --stack-green:#2F5233; --stack-gold:#B08D57;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--paper);color:var(--ink);
+    font-family:'IBM Plex Sans',sans-serif;min-height:100vh;
+    padding-top:env(safe-area-inset-top,0);padding-bottom:env(safe-area-inset-bottom,0);}
+
+  .auth-shell{
+    min-height:calc(100vh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));
+    display:flex;align-items:center;justify-content:center;padding:2em 1.2em;
+  }
+  .card{
+    width:100%;max-width:380px;background:var(--wash);border:1px solid var(--rule);
+    border-radius:6px;padding:2em 1.8em 1.8em;
+  }
+  .pill-nav{display:flex;gap:.4em;background:var(--paper);border:1px solid var(--rule);
+    border-radius:999px;padding:.3em;margin-bottom:1.6em;}
+  .pill-nav button{flex:1;border:none;background:transparent;padding:.55em 0;border-radius:999px;
+    font-family:inherit;font-size:.85rem;cursor:pointer;color:var(--charcoal-soft);}
+  .pill-nav button.active{background:var(--stack-green);color:var(--paper);}
+
+  label{display:block;font-size:.8rem;color:var(--charcoal-soft);margin:1em 0 .35em;}
+  label:first-of-type{margin-top:0;}
+  input{width:100%;font-family:inherit;font-size:.92rem;padding:.6em .75em;
+    border:1px solid var(--rule);border-radius:4px;background:var(--paper);color:var(--ink);}
+  input:focus,button:focus-visible{outline:2px solid var(--stack-green);outline-offset:1px;}
+
+  .btn-primary{border:none;background:var(--stack-green);color:var(--paper);
+    font-family:inherit;font-size:.92rem;font-weight:500;padding:.75em;border-radius:4px;cursor:pointer;}
+  .btn-primary:hover{background:#264328;}
+
+  .demo-note{font-size:.78rem;color:var(--charcoal-soft);margin-top:1em;line-height:1.6;}
+  .demo-note code{background:var(--paper);border:1px solid var(--rule);border-radius:3px;
+    padding:.1em .35em;font-size:.75rem;}
+
+  .field-error{font-size:.78rem;color:#A3442E;margin-top:.4em;display:none;}
+  .field-error.show{display:block;}
+
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --paper:#1C1A16; --ink:#EDE9DC; --charcoal-soft:#A39B87; --rule:#3A362C; --wash:#26231D;
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#1C1A16; --ink:#EDE9DC; --charcoal-soft:#A39B87; --rule:#3A362C; --wash:#26231D;
+  }
+</style>
+</head>
+<body>
+<div id="app-nav"></div>
+
+<div class="auth-shell">
+  <div class="card">
+    <div class="pill-nav">
+      <button type="button" id="tab-login" class="active">Log in</button>
+      <button type="button" id="tab-register">Create account</button>
+    </div>
+
+    <form id="login-form">
+      <label for="login-email">Email</label>
+      <input type="email" id="login-email" required autocomplete="email" />
+      <label for="login-password">Password</label>
+      <input type="password" id="login-password" required autocomplete="current-password" />
+      <div id="login-error" class="field-error">Check your email and password and try again.</div>
+      <button type="submit" class="btn-primary" style="width:100%;margin-top:1.3em;">Log in</button>
+      <p class="demo-note">
+        Demo accounts — admin: <code>admin@library.demo</code> / <code>admin123</code><br/>
+        member: <code>member@library.demo</code> / <code>member123</code>
+      </p>
+    </form>
+
+    <form id="register-form" style="display:none;">
+      <label for="reg-name">Name</label>
+      <input type="text" id="reg-name" required autocomplete="name" />
+      <label for="reg-email">Email</label>
+      <input type="email" id="reg-email" required autocomplete="email" />
+      <label for="reg-password">Password</label>
+      <input type="password" id="reg-password" required minlength="6" autocomplete="new-password" />
+      <div id="reg-error" class="field-error">Password must be at least 6 characters.</div>
+      <button type="submit" class="btn-primary" style="width:100%;margin-top:1.3em;">Create account</button>
+    </form>
+  </div>
+</div>
+
+<script src="js/api.js"></script>
+<script src="js/auth.js"></script>
+<script>
+  // Already signed in? Skip straight to the catalog.
+  (async function () {
+    if (!localStorage.getItem("token")) return;
+    try { await Api.me(); window.location.href = "index.html"; }
+    catch { localStorage.removeItem("token"); }
+  })();
+
+  const tabLogin = document.getElementById("tab-login");
+  const tabRegister = document.getElementById("tab-register");
+  const loginForm = document.getElementById("login-form");
+  const registerForm = document.getElementById("register-form");
+
+  function showTab(which){
+    const isLogin = which === "login";
+    tabLogin.classList.toggle("active", isLogin);
+    tabRegister.classList.toggle("active", !isLogin);
+    loginForm.style.display = isLogin ? "block" : "none";
+    registerForm.style.display = isLogin ? "none" : "block";
+  }
+  tabLogin.addEventListener("click", ()=>showTab("login"));
+  tabRegister.addEventListener("click", ()=>showTab("register"));
+
+  document.addEventListener("login:error", e=>{
+    const el = document.getElementById("login-error");
+    if(e.detail?.message) el.textContent = e.detail.message;
+    el.classList.add("show");
+  });
+  document.addEventListener("register:error", e=>{
+    const el = document.getElementById("reg-error");
+    if(e.detail?.message) el.textContent = e.detail.message;
+    el.classList.add("show");
+  });
+  loginForm.addEventListener("submit", ()=>document.getElementById("login-error").classList.remove("show"));
+  registerForm.addEventListener("submit", ()=>document.getElementById("reg-error").classList.remove("show"));
+</script>
+</body>
+</html>

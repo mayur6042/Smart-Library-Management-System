@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Open Stacks Library — Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,600;1,500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#FAF7F0; --ink:#23211D; --charcoal-soft:#726C5E;
+    --rule:#DEDBCC; --wash:#F1EDE0; --stack-green:#2F5233; --stack-gold:#B08D57; --stack-red:#A3442E;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--paper);color:var(--ink);
+    font-family:'IBM Plex Sans',sans-serif;padding-top:env(safe-area-inset-top,0);}
+  h1{font-family:'Lora',serif;font-weight:600;font-size:1.8rem;margin:0 0 .2em;}
+  h2{font-family:'Lora',serif;font-weight:600;font-size:1.15rem;margin:0 0 .7em;}
+  main{max-width:1040px;margin:0 auto;padding:2.2em 1.5em 4em;}
+  .page-head p{color:var(--charcoal-soft);margin:0 0 1.6em;font-size:.92rem;}
+
+  .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:.9em;margin-bottom:2.2em;}
+  .stat-card{background:var(--wash);border:1px solid var(--rule);border-radius:6px;padding:1em 1.1em;}
+  .stat-card .num{font-family:'Lora',serif;font-size:1.7rem;font-weight:600;}
+  .stat-card .label{font-size:.78rem;color:var(--charcoal-soft);margin-top:.1em;}
+
+  section{margin-bottom:2.4em;}
+  .section-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:.8em;}
+
+  table{width:100%;border-collapse:collapse;font-size:.85rem;}
+  th,td{text-align:left;padding:.6em .5em;border-bottom:1px solid var(--rule);vertical-align:middle;}
+  th{color:var(--charcoal-soft);font-weight:500;font-size:.78rem;}
+  td.actions{white-space:nowrap;text-align:right;}
+  .table-wrap{overflow-x:auto;border:1px solid var(--rule);border-radius:6px;}
+  .table-wrap table{margin:0;}
+  .table-wrap th,.table-wrap td{padding:.7em .8em;}
+
+  .badge{font-size:.72rem;padding:.15em .55em;border-radius:3px;background:var(--stack-gold);color:var(--paper);}
+  .badge.member{background:var(--charcoal-soft);}
+  .badge.unavailable{background:var(--charcoal-soft);}
+
+  button{font-family:inherit;cursor:pointer;border-radius:4px;border:1px solid var(--rule);
+    background:var(--paper);font-size:.78rem;padding:.4em .7em;color:var(--ink);}
+  button.primary{background:var(--stack-green);color:var(--paper);border-color:var(--stack-green);}
+  button.danger{color:var(--stack-red);border-color:var(--stack-red);background:var(--paper);}
+  button + button{margin-left:.4em;}
+
+  .activity-list{list-style:none;margin:0;padding:0;border:1px solid var(--rule);border-radius:6px;
+    max-height:260px;overflow-y:auto;background:var(--wash);}
+  .activity-list li{padding:.6em .9em;border-bottom:1px solid var(--rule);font-size:.85rem;}
+  .activity-list li:last-child{border-bottom:none;}
+  .activity-list .a-time{color:var(--charcoal-soft);font-size:.75rem;display:block;margin-top:.1em;}
+
+  .add-form{display:none;gap:.6em;flex-wrap:wrap;align-items:flex-end;background:var(--wash);
+    border:1px solid var(--rule);border-radius:6px;padding:1em;margin-bottom:1em;}
+  .add-form.open{display:flex;}
+  .add-form .field{display:flex;flex-direction:column;gap:.3em;font-size:.78rem;color:var(--charcoal-soft);}
+  .add-form input{font-family:inherit;font-size:.85rem;padding:.5em .6em;border:1px solid var(--rule);
+    border-radius:4px;background:var(--paper);color:var(--ink);}
+  .add-form input[type="number"]{width:90px;}
+  .add-form label.checkbox{flex-direction:row;align-items:center;gap:.4em;}
+  .add-form label.checkbox input{width:auto;}
+
+  .empty-note{color:var(--charcoal-soft);font-size:.85rem;padding:.6em .2em;}
+  .edit-row input{width:100%;font:inherit;font-size:.82rem;padding:.35em .5em;
+    border:1px solid var(--rule);border-radius:3px;background:var(--paper);color:var(--ink);}
+
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --paper:#1C1A16; --ink:#EDE9DC; --charcoal-soft:#A39B87; --rule:#3A362C; --wash:#26231D;
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#1C1A16; --ink:#EDE9DC; --charcoal-soft:#A39B87; --rule:#3A362C; --wash:#26231D;
+  }
+</style>
+</head>
+<body>
+  <div id="app-nav"></div>
+  <main>
+    <div class="page-head">
+      <h1>Admin dashboard</h1>
+      <p>Monitor activity, and manage the catalog and member accounts.</p>
+    </div>
+
+    <div id="stat-grid" class="stat-grid"></div>
+
+    <section aria-label="Recent activity">
+      <div class="section-head"><h2>Recent activity</h2></div>
+      <ul id="activity-list" class="activity-list"></ul>
+    </section>
+
+    <section aria-label="Manage books">
+      <div class="section-head">
+        <h2>Books</h2>
+        <button class="primary" id="toggle-add-book">Add book</button>
+      </div>
+      <form id="add-book-form" class="add-form">
+        <div class="field"><label for="nb-title">Title</label><input id="nb-title" required /></div>
+        <div class="field"><label for="nb-author">Author</label><input id="nb-author" required /></div>
+        <div class="field"><label for="nb-genre">Genre</label><input id="nb-genre" required /></div>
+        <div class="field"><label for="nb-year">Year</label><input id="nb-year" type="number" /></div>
+        <label class="field checkbox"><input id="nb-available" type="checkbox" checked /> Available</label>
+        <button type="submit" class="primary">Save</button>
+      </form>
+      <div id="book-error" style="color:var(--stack-red);font-size:.82rem;margin-bottom:.6em;display:none;"></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Title</th><th>Author</th><th>Genre</th><th>Year</th><th>Status</th><th></th></tr></thead>
+          <tbody id="books-tbody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section aria-label="Manage users">
+      <div class="section-head"><h2>Users</h2></div>
+      <div id="user-error" style="color:var(--stack-red);font-size:.82rem;margin-bottom:.6em;display:none;"></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Joined</th><th>Last login</th><th></th></tr></thead>
+          <tbody id="users-tbody"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script src="js/api.js"></script>
+  <script>window.REQUIRE_ADMIN = true;</script>
+  <script src="js/guard.js"></script>
+  <script src="js/nav.js"></script>
+  <script src="js/admin.js"></script>
+</body>
+</html>

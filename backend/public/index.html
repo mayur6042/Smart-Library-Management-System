@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Open Stacks Library — Catalog</title>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,600;1,500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#FAF7F0; --ink:#23211D; --charcoal-soft:#726C5E;
+    --rule:#DEDBCC; --wash:#F1EDE0; --stack-green:#2F5233; --stack-gold:#B08D57;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--paper);color:var(--ink);
+    font-family:'IBM Plex Sans',sans-serif;padding-top:env(safe-area-inset-top,0);}
+  h1{font-family:'Lora',serif;font-weight:600;font-size:2rem;margin:0 0 .2em;}
+  main{max-width:960px;margin:0 auto;padding:2.5em 1.5em 4em;}
+  .page-head p{color:var(--charcoal-soft);margin:0 0 1.5em;font-size:.95rem;}
+
+  .featured-strip{display:flex;gap:1em;overflow-x:auto;padding-bottom:.75em;margin-bottom:2em;scroll-snap-type:x mandatory;}
+  .featured-card{flex:0 0 140px;scroll-snap-align:start;cursor:pointer;}
+  .featured-card .cover{width:100%;aspect-ratio:2/3;border-radius:2px;background:var(--wash) linear-gradient(160deg,var(--wash),var(--rule));border:1px solid var(--rule);}
+  .featured-card .title{font-family:'Lora',serif;font-size:.85rem;margin-top:.5em;line-height:1.25;}
+  .featured-card .author{font-size:.75rem;color:var(--charcoal-soft);}
+  .recommendation-section{border-top:1px solid var(--rule);padding-top:1.3em;margin-bottom:1.8em;}
+  .recommendation-heading{display:flex;align-items:baseline;justify-content:space-between;gap:1em;}
+  .recommendation-heading h2{font-family:'Lora',serif;font-size:1.2rem;margin:0 0 .7em;}
+  .recommendation-heading span{font-size:.75rem;color:var(--charcoal-soft);}
+
+  .searchbar{display:flex;flex-wrap:wrap;gap:.6em;align-items:center;margin-bottom:.8em;}
+  .search-wrap{position:relative;flex:1;min-width:200px;}
+  input,select{font-family:inherit;font-size:.9rem;padding:.55em .75em;
+    border:1px solid var(--rule);border-radius:4px;background:var(--paper);color:var(--ink);}
+  #search-input{width:100%;}
+  input:focus,select:focus,button:focus{outline:2px solid var(--stack-green);outline-offset:1px;}
+
+  .search-suggestions{position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--paper);
+    border:1px solid var(--rule);border-radius:6px;box-shadow:0 8px 20px rgba(35,33,29,.1);
+    max-height:300px;overflow-y:auto;z-index:20;display:none;}
+  .search-suggestions.open{display:block;}
+  .suggestion{display:flex;justify-content:space-between;gap:.75em;padding:.55em .9em;cursor:pointer;font-size:.88rem;}
+  .suggestion:hover,.suggestion.active{background:var(--wash);}
+  .suggestion .s-meta{color:var(--charcoal-soft);font-size:.78rem;white-space:nowrap;}
+  .suggestion-empty{padding:.7em .9em;color:var(--charcoal-soft);font-size:.85rem;}
+
+  .genre-tiles{display:flex;flex-wrap:wrap;gap:.5em;margin:1em 0 1.6em;}
+  .genre-tile{border:1px solid var(--rule);background:var(--paper);border-radius:999px;
+    padding:.35em .9em;font-size:.8rem;cursor:pointer;color:var(--ink);}
+  .genre-tile.active{background:var(--stack-green);color:var(--paper);border-color:var(--stack-green);}
+
+  .toolbar-row{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5em;margin-bottom:.9em;}
+  .result-count{font-size:.82rem;color:var(--charcoal-soft);}
+
+  .book-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:1.3em;}
+  .book-card{cursor:pointer;}
+  .book-card .cover{width:100%;aspect-ratio:2/3;border-radius:2px;border:1px solid var(--rule);
+    background:var(--wash) linear-gradient(160deg,var(--wash),var(--rule));position:relative;}
+  .book-card .tag{position:absolute;top:.5em;left:.5em;font-size:.68rem;padding:.15em .5em;
+    border-radius:3px;background:var(--stack-gold);color:var(--paper);}
+  .book-card .tag.unavailable{background:var(--charcoal-soft);}
+  .book-card .title{font-family:'Lora',serif;font-size:.92rem;margin:.55em 0 .1em;line-height:1.25;}
+  .book-card .author,.book-card .genre{font-size:.78rem;color:var(--charcoal-soft);}
+
+  .empty-state{text-align:center;color:var(--charcoal-soft);padding:3em 1em;font-size:.9rem;}
+  #pagination{display:flex;gap:.6em;justify-content:center;margin-top:2.5em;}
+  #pagination button{background:var(--paper);cursor:pointer;border:1px solid var(--rule);border-radius:4px;padding:.4em .8em;font:inherit;}
+  #pagination button.active{background:var(--stack-green);color:var(--paper);border-color:var(--stack-green);}
+
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --paper:#1C1A16; --ink:#EDE9DC; --charcoal-soft:#A39B87; --rule:#3A362C; --wash:#26231D;
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#1C1A16; --ink:#EDE9DC; --charcoal-soft:#A39B87; --rule:#3A362C; --wash:#26231D;
+  }
+</style>
+</head>
+<body>
+  <div id="app-nav"></div>
+  <main>
+    <div class="page-head">
+      <h1>Browse the catalog</h1>
+      <p>Search by title, author, genre or tag — or just scroll.</p>
+    </div>
+
+    <section aria-label="Featured books"><div id="featured-strip" class="featured-strip"></div></section>
+    <section aria-label="Personalized recommendations" class="recommendation-section">
+      <div class="recommendation-heading"><h2 id="recommendation-title">Recommended for you</h2><span id="recommendation-note"></span></div>
+      <div id="recommendation-strip" class="featured-strip"></div>
+    </section>
+
+    <div class="searchbar">
+      <div class="search-wrap">
+        <input type="text" id="search-input" placeholder="Search title, author, tag…" autocomplete="off" />
+        <div id="search-suggestions" class="search-suggestions" role="listbox"></div>
+      </div>
+      <select id="genre-filter"><option value="">All genres</option></select>
+      <label style="display:flex;align-items:center;gap:.4em;margin:0;color:var(--charcoal-soft);font-size:.85rem;">
+        <input type="checkbox" id="available-only" style="width:auto;" /> Available only
+      </label>
+    </div>
+
+    <div id="genre-tiles" class="genre-tiles"></div>
+
+    <div class="toolbar-row">
+      <div id="result-count" class="result-count"></div>
+      <select id="sort-select">
+        <option value="title">Sort: Title A–Z</option>
+        <option value="author">Sort: Author A–Z</option>
+        <option value="newest">Sort: Newest first</option>
+      </select>
+    </div>
+
+    <div id="book-grid" class="book-grid"></div>
+    <div id="empty" class="empty-state" style="display:none;">No books match your search.</div>
+    <div id="pagination"></div>
+  </main>
+  <div id="book-modal-mount"></div>
+
+  <script src="js/api.js"></script>
+  <script src="js/guard.js"></script>
+  <script src="js/nav.js"></script>
+  <script src="js/book-modal.js"></script>
+  <script src="js/books.js"></script>
+</body>
+</html>
