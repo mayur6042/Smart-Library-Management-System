@@ -111,4 +111,4 @@ This is built to be a clear, working reference implementation, not a
 production deployment: the JWT secret and Mongo URI should be replaced for
 real use, `CORS_ORIGINS` should be narrowed from `*`, and at real scale
 you'd move recommendation-matrix computation to an offline/scheduled job
-rather than recomputing it per request.
+rather than recomputing it per request. Client and Server are combined in backend.
